@@ -75,31 +75,69 @@ if com_coordenada.empty:
 # =================================================================== MAPAS
 # Usamos um seletor em vez de abas: só o mapa escolhido é desenhado,
 # o que deixa o app mais rápido.
-modelo = st.radio(
+col_modelo, col_fundo = st.columns([3, 1])
+modelo = col_modelo.radio(
     "Modelo de mapa",
     ["1 · Heatmap (Folium)", "2 · Densidade (Plotly)",
      "3 · Hexágonos 3D (Pydeck)", "4 · Agrupamentos (Folium)"],
     horizontal=True,
 )
+fundo = col_fundo.selectbox("Mapa de fundo", list(mapas.FUNDOS),
+                            disabled=modelo.startswith("3"),
+                            help="O Pydeck usa o próprio mapa de fundo.")
 
 if modelo.startswith("1"):
     col_a, col_b = st.columns(2)
     raio = col_a.slider("Raio do ponto", 5, 40, 15)
     desfoque = col_b.slider("Desfoque", 5, 40, 15)
-    mapas.mapa_calor_folium(com_coordenada, raio, desfoque)
+    mapas.mapa_calor_folium(com_coordenada, raio, desfoque, fundo)
 
 elif modelo.startswith("2"):
     raio = st.slider("Raio de influência", 3, 30, 8)
-    mapas.mapa_densidade_plotly(com_coordenada, raio)
+    mapas.mapa_densidade_plotly(com_coordenada, raio, fundo)
 
 elif modelo.startswith("3"):
-    col_a, col_b = st.columns(2)
-    raio_hex = col_a.slider("Tamanho do hexágono (metros)", 50, 500, 150, step=25)
-    altura = col_b.slider("Escala de altura", 1, 20, 4)
-    mapas.mapa_hexagonos_pydeck(com_coordenada, raio_hex, altura)
+    col_a, col_b, col_c, col_d = st.columns([2, 2, 2, 1])
+    tamanho = col_a.select_slider("Tamanho do hexágono", list(mapas.RESOLUCOES_H3),
+                                  value="Médio (~350 m)")
+    acidentes_hex, zonas = mapas.agregar_em_hexagonos(
+        com_coordenada, mapas.RESOLUCOES_H3[tamanho])
+    minimo = col_b.slider("Mostrar zonas com pelo menos", 1,
+                          int(zonas["acidentes"].max()), 1,
+                          help="Esconde as zonas com poucos acidentes para os picos aparecerem.")
+    altura = col_c.slider("Escala de altura", 1, 50, 10)
+    em_3d = col_d.toggle("3D", value=True)
+
+    visiveis = zonas[zonas["acidentes"] >= minimo]
+    st.caption("Passe o mouse para ver o perfil da zona. **Clique num hexágono** "
+               "para listar os acidentes dele abaixo do mapa.")
+    hex_clicado = mapas.mapa_hexagonos_pydeck(visiveis, altura, em_3d)
+
+    col_rank, col_detalhe = st.columns([2, 3])
+    with col_rank:
+        st.subheader("Top 10 zonas")
+        st.dataframe(
+            zonas.head(10)[["ranking", "acidentes", "rua", "bairro", "tipo"]],
+            hide_index=True, width="stretch",
+            column_config={"ranking": "#", "acidentes": "Acidentes", "rua": "Rua principal",
+                           "bairro": "Bairro", "tipo": "Tipo mais comum"},
+        )
+    with col_detalhe:
+        if hex_clicado:
+            detalhe = acidentes_hex[acidentes_hex["h3"] == hex_clicado]
+            st.subheader(f"Zona selecionada · {len(detalhe)} acidentes")
+            st.bar_chart(detalhe["tipo"].value_counts().head(8), horizontal=True, height=220)
+            st.dataframe(
+                detalhe.sort_values("data", ascending=False)[
+                    ["data", "hora", "fase", "tipo", "logradouro", "numero", "referencia"]],
+                hide_index=True, width="stretch", height=260,
+                column_config={"data": st.column_config.DateColumn("Data", format="DD/MM/YYYY")},
+            )
+        else:
+            st.info("Clique num hexágono do mapa para ver os acidentes daquela zona.")
 
 else:
-    mapas.mapa_clusters_folium(com_coordenada)
+    mapas.mapa_clusters_folium(com_coordenada, fundo)
 
 sem_coord = len(filtrado) - len(com_coordenada)
 if sem_coord:
