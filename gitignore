@@ -1,0 +1,10 @@
+# Segredos: NUNCA enviar ao GitHub
+.streamlit/secrets.toml
+*.json
+
+# Dados locais
+dados/
+*.ods
+*.xlsx
+
+__pycache__/

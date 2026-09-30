@@ -51,6 +51,12 @@ with st.sidebar:
         help="Ex.: disparo de alarme de incêndio, emergência APP.",
     )
 
+    st.divider()
+    # Os dados ficam guardados por 1 hora. Este botão força baixar agora.
+    if st.button("🔄 Atualizar dados do Drive", width="stretch"):
+        carregar_acidentes.clear()
+        st.rerun()
+
 filtrado = filtrar(df, periodo, bairros, tipos, fases, excluir_aproximados, excluir_nao_viarios)
 com_coordenada = filtrado.dropna(subset=["lat", "lon"])
 
