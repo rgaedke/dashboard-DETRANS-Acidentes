@@ -1,0 +1,7 @@
+streamlit>=1.50
+pandas>=2.0
+odfpy>=1.4
+folium>=0.17
+streamlit-folium>=0.22
+plotly>=5.24
+pydeck>=0.9
