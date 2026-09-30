@@ -78,6 +78,26 @@ def _classificar_precisao(texto) -> str:
     return "Não localizado"
 
 
+def _encontrar_planilhas(pasta: Path) -> list[Path]:
+    """Procura as planilhas na pasta 'dados' e, como plano B, na pasta do app.
+
+    Aceita 'Banco_de_Dados_2021.ods' e 'Banco de Dados 2021.ods':
+    o padrão [ _] significa "um espaço OU um underline".
+    """
+    padrao = "Banco[ _]de[ _]Dados[ _]*.ods"
+    for local in (pasta, Path(__file__).parent):
+        arquivos = sorted(local.glob(padrao))
+        if arquivos:
+            return arquivos
+
+    # Nada encontrado: mostra o que existe, para facilitar achar o problema
+    conteudo = sorted(p.name for p in pasta.iterdir()) if pasta.exists() else "a pasta não existe"
+    raise FileNotFoundError(
+        f"Nenhuma planilha 'Banco de Dados AAAA.ods' encontrada em {pasta} "
+        f"nem em {Path(__file__).parent}. Conteúdo de {pasta.name}/: {conteudo}"
+    )
+
+
 @st.cache_data(show_spinner="Lendo planilhas (só na primeira vez)...")
 def carregar_acidentes(pasta: str = str(PASTA_DADOS)) -> pd.DataFrame:
     """Junta todos os anos em uma única tabela limpa.
@@ -85,9 +105,7 @@ def carregar_acidentes(pasta: str = str(PASTA_DADOS)) -> pd.DataFrame:
     @st.cache_data guarda o resultado: ler .ods é lento, então só lemos
     de novo se a função for chamada com argumentos diferentes.
     """
-    arquivos = sorted(Path(pasta).glob("Banco_de_Dados_*.ods"))
-    if not arquivos:
-        raise FileNotFoundError(f"Nenhum Banco_de_Dados_*.ods encontrado em {pasta}")
+    arquivos = _encontrar_planilhas(Path(pasta))
 
     df = pd.concat([_ler_aba_acidentes(a) for a in arquivos], ignore_index=True)
 
