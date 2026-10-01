@@ -31,6 +31,9 @@ COLUNAS = [
     "numero", "referencia", "bairro", "geo", "precisao",
 ]
 
+# Colunas criadas pelo geocodificar.py
+COLUNAS_GEOCODIFICACAO = ["lat_corrigida", "lon_corrigida", "metodo_geo", "confianca_geo", "rua_simgeo"]
+
 # Grafias diferentes para o mesmo bairro -> nome padronizado.
 # Revise esta lista: você conhece a cidade melhor do que eu.
 CORRECOES_BAIRRO = {
@@ -57,6 +60,26 @@ ORDEM_FASES = ["Madrugada", "Manhã", "Tarde", "Noite"]
 NOMES_FASES = {"MADRUGADA": "Madrugada", "MANHA": "Manhã", "TARDE": "Tarde", "NOITE": "Noite"}
 
 
+def _explicar_erro_403(resposta, projeto: str):
+    """O Google explica o motivo do 403 no corpo da resposta (em JSON).
+    Lemos esse motivo em vez de adivinhar."""
+    try:
+        erro = resposta.json()["error"]
+        motivo = erro.get("errors", [{}])[0].get("reason", "")
+        mensagem = erro.get("message", "")
+    except ValueError:  # resposta não era JSON
+        motivo, mensagem = "", resposta.text[:300]
+
+    if motivo == "accessNotConfigured" or "has not been used" in mensagem or "disabled" in mensagem:
+        raise PermissionError(
+            f"A Google Drive API não está ativada no projeto '{projeto}' "
+            "(o projeto da conta de serviço). Ative em: "
+            f"https://console.cloud.google.com/apis/library/drive.googleapis.com?project={projeto} "
+            "e aguarde alguns minutos."
+        )
+    raise PermissionError(f"Google recusou o acesso (motivo: {motivo or '?'}): {mensagem}")
+
+
 def _baixar_do_drive(id_arquivo: str) -> bytes:
     """Baixa a planilha usando a conta de serviço guardada nos Secrets."""
     credenciais = service_account.Credentials.from_service_account_info(
@@ -73,7 +96,7 @@ def _baixar_do_drive(id_arquivo: str) -> bytes:
             f"com {credenciais.service_account_email}"
         )
     if resposta.status_code == 403:
-        raise PermissionError("Acesso negado. A Google Drive API está ativada no projeto do Google Cloud?")
+        _explicar_erro_403(resposta, credenciais.project_id)
     resposta.raise_for_status()
 
     if resposta.json()["mimeType"] == TIPO_GOOGLE_SHEETS:
@@ -115,9 +138,13 @@ def carregar_acidentes() -> pd.DataFrame:
     conteudo = _baixar_do_drive(config["id"])
 
     # io.BytesIO faz os bytes baixados se comportarem como um arquivo
-    df = pd.read_excel(io.BytesIO(conteudo), sheet_name=config.get("aba", 0))
-    df = df.iloc[:, :12]   # renomeia por posição: as 12 colunas originais
+    bruto = pd.read_excel(io.BytesIO(conteudo), sheet_name=config.get("aba", 0))
+    df = bruto.iloc[:, :12].copy()   # renomeia por posição: as 12 colunas originais
     df.columns = COLUNAS
+    # colunas acrescentadas pelo geocodificar.py (se existirem), lidas pelo nome
+    for coluna in COLUNAS_GEOCODIFICACAO:
+        if coluna in bruto.columns:
+            df[coluna] = bruto[coluna]
     df = df.dropna(subset=["data"])  # descarta linhas vazias no fim da planilha
 
     df["data"] = pd.to_datetime(df["data"], errors="coerce", dayfirst=True)
@@ -138,6 +165,14 @@ def carregar_acidentes() -> pd.DataFrame:
     return df
 
 
+def usar_coordenadas_corrigidas(df: pd.DataFrame) -> pd.DataFrame:
+    """Troca lat/lon pelas coordenadas do geocodificar.py, quando existirem."""
+    if "lat_corrigida" not in df.columns:
+        return df
+    return df.assign(lat=pd.to_numeric(df["lat_corrigida"], errors="coerce"),
+                     lon=pd.to_numeric(df["lon_corrigida"], errors="coerce"))
+
+
 def filtrar(df, periodo, bairros, tipos, fases, excluir_aproximados, excluir_nao_viarios):
     """Aplica os filtros da barra lateral. Lista vazia = sem filtro."""
     inicio, fim = periodo
@@ -149,7 +184,10 @@ def filtrar(df, periodo, bairros, tipos, fases, excluir_aproximados, excluir_nao
     if fases:
         mascara &= df["fase"].isin(fases)
     if excluir_aproximados:
-        mascara &= df["precisao_cat"] != "Aproximada (centro da rua)"
+        if "confianca_geo" in df.columns:   # com correção: só o que continuou impreciso
+            mascara &= df["confianca_geo"] != "baixa (centro da rua)"
+        else:
+            mascara &= df["precisao_cat"] != "Aproximada (centro da rua)"
     if excluir_nao_viarios:
         mascara &= ~df["nao_viario"]
     return df[mascara]

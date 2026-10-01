@@ -5,7 +5,7 @@ Para rodar:  streamlit run app.py
 """
 import streamlit as st
 
-from dados import ORDEM_FASES, carregar_acidentes, filtrar
+from dados import ORDEM_FASES, carregar_acidentes, filtrar, usar_coordenadas_corrigidas
 import mapas
 
 st.set_page_config(page_title="Acidentes de Trânsito", page_icon="🚦", layout="wide")
@@ -46,6 +46,11 @@ with st.sidebar:
         help="Pontos colocados no centro da rua (sem número) podem criar "
              "falsas zonas de calor.",
     )
+    corrigidas = st.toggle(
+        "Usar coordenadas corrigidas (SIMGeo)", value=True,
+        disabled="lat_corrigida" not in df.columns,
+        help="Geradas pelo geocodificar.py. Desligue para comparar com as originais.",
+    )
     excluir_nao_viarios = st.checkbox(
         "Excluir ocorrências não viárias", value=True,
         help="Ex.: disparo de alarme de incêndio, emergência APP.",
@@ -57,6 +62,8 @@ with st.sidebar:
         carregar_acidentes.clear()
         st.rerun()
 
+if corrigidas:
+    df = usar_coordenadas_corrigidas(df)
 filtrado = filtrar(df, periodo, bairros, tipos, fases, excluir_aproximados, excluir_nao_viarios)
 com_coordenada = filtrado.dropna(subset=["lat", "lon"])
 
