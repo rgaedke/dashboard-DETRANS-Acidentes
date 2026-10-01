@@ -1,0 +1,69 @@
+Nesta pasta, estão contidas as seguintes camadas:
+
+1-Ferrovia
+Classe de feição vetorial do tipo linear que localiza as vias férreas identificáveis 
+a partir da restituição aerofotogramétrica de 2007.
+
+Segue abaixo modelos de citação da fonte:
+
+Prefeitura Municipal de Joinville.
+Base Cartográfica do Município de Joinville.
+Escala 1:1.000
+Elaborado Por: Aeroimagem Engenharia e Aerolevantamento, ano de 2007.
+
+2-Vias rurais
+Classe de feição vetorial do tipo linear que identifica a malha de logradouros na área rural de Joinville.
+
+Segue abaixo modelos de citação da fonte:
+
+Prefeitura Municipal de Joinville. 2010.
+Base Cartográfica do Município de Joinville.
+Escala 1:10.000 / 1:5.000.
+Elaborado Por: Aeroimagem Engenharia e Aerolevantamento, ano de 2010.
+Atualizado por: Secretaria de Pesquisa e Planejamento Urbano - Unidade de Geoprocessamento.
+
+3-Vias urbanas
+Classe de feição vetorial do tipo linear que identifica a malha de logradouros dentro do perímetro urbano
+de Joinville.
+
+Segue abaixo modelo de citação da fonte:
+
+Prefeitura Municipal de Joinville. 2010.
+Base Cartográfica do Município de Joinville.
+Escala 1:1.000
+Elaborado Por: Aeroimagem Engenharia e Aerolevantamento, ano de 2010.
+Atualizado por: Secretaria da Fazenda - Unidade de Cadastro Técnico.
+
+4-Vias e rodovias
+Escalas 1:1000, 1:5000 e 1:10000
+Classe de feição vetorial do tipo linear que localiza as vias, rodovias e caminhos 
+identificáveis a partir da restituição aerofotogramétrica de 2010.
+
+Segue abaixo modelo de citação da fonte:
+
+Prefeitura Municipal de Joinville. 2010.
+Base Cartográfica do Município de Joinville.
+Escala 1:1000, 1:5000 e 1:10000
+Elaborado Por: Aeroimagem Engenharia e Aerolevantamento, ano de 2010
+
+5-Rede cicloviária
+Classe de feição vetorial do tipo linear que identifica a rede cicloviária implantada nas vias
+de Joinville.
+
+Segue abaixo modelos de citação da fonte:
+
+Secretaria de Pesquisa e Planejamento Urbano. 
+Elaboração: Unidade de Mobilidade.
+
+6-Plano Viário 2024 com projetos futuros e cortes/aterros.
+
+Segue abaixo modelos de citação da fonte:
+
+Secretaria de Pesquisa e Planejamento Urbano. 
+Manutenção: Unidade de Mobilidade.
+Elaboração: Consórcio Nippon Koei LAC – TIS.
+LEI COMPLEMENTAR Nº 694, DE 23 DE DEZEMBRO DE 2024. Redefine e institui o Plano Viário do Município de Joinville, parte integrante do Plano Diretor de
+Desenvolvimento Sustentável do Município de Joinville e dá outras providências.
+
+ 
+Atualização: 18/09/2026.

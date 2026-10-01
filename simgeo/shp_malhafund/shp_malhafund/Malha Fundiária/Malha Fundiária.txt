@@ -1,0 +1,30 @@
+Nesta pasta, estão contidas as seguintes camadas:
+
+1-Edificações
+Escalas 1:1.000
+Classe de feição vetorial do tipo poligonal que identifica edificações a partir
+da restituição aerofogramétrica de 2007.
+
+2-Edificações
+Escalas 1:1.000 e 1:5.000
+Classe de feição vetorial do tipo linear que identifica edificações a partir
+da restituição aerofogramétrica de 2010.
+
+Segue abaixo modelo de citação da fonte:
+
+Prefeitura Municipal de Joinville. 2010.
+Base Cartográfica do Município de Joinville.
+Escala 1:10.000 / 1:5.000.
+Executado Por: Aeroimagem Engenharia e Aerolevantamento, ano de 2010.
+
+3-Lotes : 
+Classe de feição vetorial do tipo poligonal que delimita a malha de lotes
+urbanos de Joinville atualizada em 25 de julho de 2025, com atributos de endereço
+e inscrição imobiliária.
+
+Segue abaixo modelo de citação da fonte:
+
+Prefeitura Municipal de Joinville.
+Secretaria da Fazenda - Unidade de Cadastro Técnico.
+
+Atualização: 18/09/2026
